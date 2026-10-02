@@ -1,0 +1,9 @@
+robot_number, process_area
+11,'Batteriekasten'
+12,'Getriebetunnel'
+21,'Radhaus hinten links'
+22,'Radhaus hinten rechts'
+31, 'Schweller links'
+32, 'Schweller rechts'
+41, 'Foerderbereich links'
+42, 'Foerderbereich rechts'
