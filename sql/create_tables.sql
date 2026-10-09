@@ -57,6 +57,6 @@ CREATE TABLE production_measurements(
 
 CREATE TABLE vehicle_status(
     igef VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
+    vehicle_location VARCHAR(255) NOT NULL,
     date_time DATETIME NOT NULL
 );

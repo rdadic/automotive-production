@@ -9,8 +9,8 @@ SELECT * FROM models_made_view;
 
 DROP VIEW IF EXISTS production_by_line_view;
 
-CREATE VIEW productin_by_line_view AS 
-SELECT ubs_line AS "UBS Line", COUNT(*) AS 'Qauntity' FROM production 
+CREATE VIEW production_by_line_view AS 
+SELECT ubs_line AS "UBS Line", COUNT(*) AS 'Quantity' FROM production 
 GROUP BY ubs_line;
 
 SELECT * FROM production_by_line_view;

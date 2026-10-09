@@ -40,11 +40,12 @@ def generate_production_measurements(cursor):
                 }[robot_number]
 
             actual_ml = generate_actual_volume(target_volume_ml)
+            target_volume_ml = float(target_volume_ml)
             deviation_ml = actual_ml - target_volume_ml 
 
             deviation_percent = (deviation_ml / target_volume_ml) * 100 
 
-            requires_inspection = abs(deviation_percent) >= 5
+            requires_inspection = abs(deviation_percent) >= 10
 
 
             
@@ -56,12 +57,14 @@ def generate_production_measurements(cursor):
 
     
 def generate_actual_volume(target_volume_ml):
-    deviations = [-100, -90, -80, -70, -50, -40, -30, -20, -10, 0, 5, 10, 15, 20, 30, 50, 60, 70, 80, 100, 150, 200]
-    weights = [40, 40, 30, 30, 20, 15, 15, 160, 180, 190, 180, 165, 150, 70, 60, 10, 5, 5, 5, 5, 6, 7]
+    target_volume_ml = float(target_volume_ml)
+
+    deviations = [-100, -90, -80, -70, -50, -40, -30, -20, -10,0,5,10,15,20,30,50,60,70,80,100]
+    weights = [15,6,1,1,1,1,1,50,320,1200,850,750,100,5,4,3,2,2,1,8]
 
     deviation = random.choices(deviations, weights = weights, k=1)[0]
 
-    actual_ml = target_volume_ml + deviation
+    actual_ml = target_volume_ml * ( 1 + deviation/100)
 
     return round(actual_ml, 2)
 
