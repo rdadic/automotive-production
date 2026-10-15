@@ -60,3 +60,5 @@ CREATE TABLE vehicle_status(
     vehicle_location VARCHAR(255) NOT NULL,
     date_time DATETIME NOT NULL
 );
+
+

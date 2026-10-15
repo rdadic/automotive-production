@@ -1,0 +1,191 @@
+import pandas as pd 
+
+import mysql.connector as connector
+from mysql.connector import errorcode
+
+connection = connector.connect(
+    host = 'localhost',
+    port = 3306, 
+    user= 'root',
+    password = 'projektiSQL2026!',
+    database = 'automotive_production'
+)
+
+query = 'SELECT * FROM production'
+production_df = pd.read_sql(query, connection)
+
+query = 'SELECT * FROM production_measurements'
+measurements_df = pd.read_sql(query, connection)
+
+query = 'SELECT * FROM process_specifications'
+specifications_df = pd.read_sql(query, connection)
+
+df = production_df.merge(
+    measurements_df, 
+    on='igef',
+    how='inner'
+)
+
+df = df.merge(
+    specifications_df,
+    on='specification_id',
+    how='inner'
+)
+
+print(df.shape)
+print(df.head())
+print(df.info())
+print(df.isna().sum())
+print(df.duplicated().sum())
+print(df.columns.tolist())
+
+df_analysis = df.copy()
+df_analysis = df_analysis.drop(columns=['model_id_y', 'robot_number'])
+df_analysis = df_analysis.rename(columns={'model_id_x':'model_id'})
+
+df_analysis['abs_deviation_percent'] = (df_analysis['deviation_percent'].abs())
+
+model_analysis = (
+    df_analysis.groupby(['model_id','ubs_line']).agg(
+        vehicles=('igef','nunique'),
+        measurements=('igef','size'),
+        avg_abs_deviation=('abs_deviation_percent','mean'),
+        inspection_count=('requires_inspection','sum')
+    ).reset_index()
+)
+model_analysis['inspection_rate_percent']=(model_analysis['inspection_count']/model_analysis['measurements'] * 100)
+
+print(model_analysis.round(2))
+
+
+pivot = df_analysis.pivot_table(
+    index = 'model_id',
+    columns = 'ubs_line',
+    values = 'abs_deviation_percent',
+    aggfunc='mean'
+)
+
+print(pivot.round(2))
+
+model_analysis.to_csv('/Users/ibrahim/Desktop/automotive-production/data/model_analysis.csv', index = False)
+pivot.to_csv('/Users/ibrahim/Desktop/automotive-production/data/model_line_pivot.csv')
+
+import numpy as np 
+
+deviations = (
+    df_analysis['abs_deviation_percent'].dropna().to_numpy(dtype=float)
+)
+
+
+import matplotlib.pyplot as plt
+
+df_analysis['production_datetime'] = pd.to_datetime(df_analysis['production_datetime'])
+df_analysis['hour'] = df_analysis['production_datetime'].dt.hour
+
+hourly_production = (
+    df_analysis.groupby(['hour','ubs_line'])['igef'].nunique().unstack(fill_value=0).reindex(range(24),fill_value=0)
+)
+
+ax = hourly_production.plot(
+    kind = 'bar',
+    figsize = (12,5),
+    width = 0.8
+)
+
+for container in ax.containers:
+    ax.bar_label(container, fmt="%.0f", padding=3)
+
+plt.title('Hourly production line 1 and line 2')
+plt.xlabel('Hour of day')
+plt.ylabel('Vehicles produced')
+plt.xticks(range(24),rotation=0)
+plt.tight_layout()
+plt.show()
+plt.savefig('ubs_line_hour.png')
+
+hourly_total = hourly_production.sum(axis = 1)
+ax = hourly_total.plot(
+    kind = 'bar',
+    figsize = (12, 5),
+    width = 0.8 
+)
+
+for container in ax.containers: 
+    ax.bar_label(container, fmt="%.0f", padding=3)
+
+plt.title('Hourly production UBS - total')
+plt.xlabel('Hour of day')
+plt.ylabel('Vehicles produced')
+plt.xticks(range(24), rotation=0)
+plt.tight_layout()
+plt.show()
+
+df_timeline = (
+    df_analysis[['igef','ubs_line','production_datetime']]
+    .drop_duplicates(subset = ['igef'])
+    .sort_values('production_datetime')
+    .copy()
+)
+
+df_timeline['time_difference'] = (
+    df_timeline.groupby('ubs_line')['production_datetime'].diff().dt.total_seconds() / 60
+)
+
+interruptions = df_timeline[df_timeline['time_difference'] > 2]
+
+
+import matplotlib.dates as mdates
+
+shifts = [
+    ("Nachtschicht", 0, 6),
+    ("Frühschicht", 6, 15),
+    ("Spätschicht",15,24)
+]
+
+
+
+for shift, start_hour, end_hour in shifts:
+    fig, axes = plt.subplots(2, 1, figsize=(14,5), sharex=True)
+
+    shift_interruptions = interruptions[
+        (interruptions['production_datetime'].dt.hour >= start_hour) & 
+        (interruptions['production_datetime'].dt.hour < end_hour)
+    ]
+
+    for ax, line in zip(axes, [1,2]):
+        line_data = shift_interruptions[shift_interruptions['ubs_line']==line]
+
+
+        ax.scatter(
+            line_data['production_datetime'],
+            line_data['time_difference'],
+            s=50,
+            alpha=0.8, 
+        )
+
+        ax.axhline(
+            y=2,
+            color='red',
+            linestyle='--',
+            linewidth=1.3,
+            label='2 minute delay'
+        )
+
+        ax.set_title(f"UBS-Linie {line}")
+        ax.set_ylabel("Zeitabstand (Minuten)")
+        ax.grid(axis='y', alpha=0.3)
+        ax.legend()
+
+    axes[1].set_xlabel('Produktionszeit')
+    axes[1].xaxis.set_major_locator(mdates.HourLocator(interval=1))
+    axes[1].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+
+    fig.suptitle(f"Produktionsunterbrechungen: {shift}")
+    fig.tight_layout()
+    plt.show()
+
+
+
+
+
+
