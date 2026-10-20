@@ -1,23 +1,33 @@
 from airflow import DAG 
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 import datetime as dt
 import pandas as pd 
 import mysql.connector as connector 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from pathlib import Path
+from dotenv import load_dotenv
+import os 
 
-DATA_DIR = Path("/Users/ibrahim/Desktop/automotive-production/pipeline")
+import matplotlib 
+matplotlib.use("Agg")
+
+PROJECT_DIR = Path("/Users/ibrahim/Desktop/automotive-production")
+load_dotenv(PROJECT_DIR / ".env")
+
+DATA_DIR = PROJECT_DIR / "pipeline"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
 
 def extract_data():
 
     connection = connector.connect(
-    host = 'localhost',
-    port = 3306, 
-    user= 'root',
-    password = 'projektiSQL2026!',
-    database = 'automotive_production'
+    host = os.environ["MYSQL_HOST"],
+    port = int(os.getenv("MYSQL_PORT","3306")), 
+    user= os.environ["MYSQL_USER"],
+    password = os.environ["MYSQL_PASSWORD"],
+    database = os.environ["MYSQL_DATABASE"]
     )
 
     try:
@@ -26,7 +36,7 @@ def extract_data():
 
         tables = ['production', 'production_measurements', 'process_specifications']
 
-        dataframes = {} #dictionary od pandas dataframes
+        dataframes = {} 
 
         for table in tables:
             cursor.execute(f"SELECT * FROM {table}")
@@ -78,8 +88,8 @@ def transform_data():
         aggfunc='mean'
     )
 
-    model_analysis.to_csv('/Users/ibrahim/Desktop/automotive-production/pipeline/model_analysis.csv', index = False)
-    pivot.to_csv('/Users/ibrahim/Desktop/automotive-production/pipeline/model_line_pivot.csv')
+    model_analysis.to_csv(DATA_DIR / "model_analysis.csv", index = False)
+    pivot.to_csv(DATA_DIR / "model_line_pivot.csv")
 
     merged_table['production_datetime'] = pd.to_datetime(merged_table['production_datetime'])
     merged_table['hour'] = merged_table['production_datetime'].dt.hour
@@ -124,7 +134,7 @@ def visualize_data():
     plt.ylabel('Vehicles produced')
     plt.xticks(range(24),rotation=0)
     plt.tight_layout()
-    plt.savefig('ubs_line_hour.png')
+    plt.savefig(DATA_DIR / "ubs_line_hour.png")
     plt.close()
 
     hourly_total = hourly_production.sum(axis = 1)
@@ -142,7 +152,7 @@ def visualize_data():
     plt.ylabel('Vehicles produced')
     plt.xticks(range(24), rotation=0)
     plt.tight_layout()
-    plt.savefig('ubs_total_hour.png')
+    plt.savefig(DATA_DIR / "ubs_total_hour.png")
     plt.close()
 
     shifts = [
@@ -191,7 +201,11 @@ def visualize_data():
 
         fig.suptitle(f"Produktionsunterbrechungen: {shift}")
         fig.tight_layout()
-        fig.savefig(f"interruption_{shift.lower()}.png")
+        fig.savefig(
+            DATA_DIR / f"interruption_{shift.lower()}.png",
+            dpi = 150, 
+            bbox_inches="tight"
+        )
         plt.close(fig)
     
 
@@ -207,7 +221,8 @@ dag = DAG(
     dag_id = 'automotive_production_pipeline',
     description = 'Pipeline for automotive production (Lack - UBS)',
     default_args = default_args,
-    schedule_interval = dt.timedelta(days = 1)
+    schedule = dt.timedelta(days = 1),
+    catchup=False
 )
 
 extract = PythonOperator(

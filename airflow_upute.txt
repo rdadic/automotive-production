@@ -1,0 +1,31 @@
+/Users/ibrahim/airflow/dags
+airflow standalone 
+- ostaviti otvoren taj terminal
+
+http://localhost:8080 
+
+admin 
+pass 
+
+find username and pass:
+CTRL C prekinuti airflow 
+cat ~/airflow/standalone_admin_password.txt
+
+ili 
+
+find ~/airflow -name '*password*'
+
+
+new terminal: 
+automotive-production 
+
+cp automotive_pipeline.py /Users/ibrahim/airflow/dags
+airflow dags list-import-errors
+airflow dags list
+airflow dags list | automotive_production_pipeline
+airflow dags unpause automotive_production_pipeline
+
+u automotive production mora isto biti folder dags 
+ali se ne ide u njega 
+
+

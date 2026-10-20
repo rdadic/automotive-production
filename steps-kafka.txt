@@ -1,0 +1,33 @@
+Apache Kafka: 
+- download
+
+tar -xzf kafka-2.13-4.3.1.tgz 
+cd kafka-2.13-4.3.1
+
+Java - Adoptium Temurin: x_86, JDK 17, .pkg file 
+
+java --version 
+
+KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
+bin/kafka-storage.sh format --standalone -t "$KAFKA_CLUSTER_ID" -c config/server.properties
+bin/kafka-server-start.sh config/server.properties
+
+New Terminal:
+
+Broker
+bin/kafka-topics.sh --create --topic productionUBS --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+bin/kafka-topics.sh --describe --topic productionUBS --bootstrap-server localhost:9092
+
+cd ..
+cd automotive-production
+Producer 
+python src/kafka/producer.py
+Consumer
+python src/kafka/consumer.py
+
+
+pip3 install kafka-python 
+
+
+
