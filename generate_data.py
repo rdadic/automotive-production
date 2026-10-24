@@ -3,13 +3,21 @@ from mysql.connector import errorcode
 import pandas as pd 
 import generators
 from datetime import datetime
+from dotenv import load_dotenv
+import os 
+from pathlib import Path
+
+
+PROJECT_DIR = Path(__file__).resolve().parent
+load_dotenv(PROJECT_DIR / ".env")
+
 
 connection = connector.connect(
-    host = 'localhost',
-    port = 3306, 
-    user= 'root',
-    password = 'projektiSQL2026!',
-    database = 'automotive_production'
+    host = os.environ["MYSQL_HOST"],
+    port = int(os.getenv("MYSQL_PORT","3306")),
+    user= os.environ["MYSQL_USER"],
+    password = os.environ["MYSQL_PASSWORD"],
+    database = os.environ["MYSQL_DATABASE"]
 )
 
 cursor = connection.cursor()

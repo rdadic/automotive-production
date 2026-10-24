@@ -12,7 +12,8 @@ import os
 import matplotlib 
 matplotlib.use("Agg")
 
-PROJECT_DIR = Path("/Users/ibrahim/Desktop/automotive-production")
+
+PROJECT_DIR=Path(os.environ["AUTOMOTIVE_PROJECT_DIR"])
 load_dotenv(PROJECT_DIR / ".env")
 
 DATA_DIR = PROJECT_DIR / "pipeline"
@@ -35,8 +36,6 @@ def extract_data():
         cursor = connection.cursor()
 
         tables = ['production', 'production_measurements', 'process_specifications']
-
-        dataframes = {} 
 
         for table in tables:
             cursor.execute(f"SELECT * FROM {table}")

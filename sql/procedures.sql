@@ -7,7 +7,7 @@ BEGIN
 SELECT SUM(pm.actual_ml)/1000 INTO pvc_liter FROM production_measurements AS pm
 INNER JOIN production AS p 
 ON pm.igef = p.igef 
-WHERE DATE(production.production_datetime) = production_date_input;
+WHERE DATE(p.production_datetime) = production_date_input;
 END  // 
 
 DELIMITER ; 

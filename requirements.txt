@@ -1,0 +1,8 @@
+pandas
+mysql-connector-python
+matplotlib
+python-dotenv
+kafka-python
+apache-airflow
+apache-ariflow-providers-standard
+

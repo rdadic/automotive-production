@@ -22,7 +22,7 @@ CREATE VIEW quality_overview_view AS
 SELECT 
     COUNT(*) AS total_measurements_places,
     SUM(requires_inspection) as inspections, 
-    AVG(deviation_percent) AS avg_deviation_percent
+    AVG(ABS(deviation_percent)) AS avg_abs_deviation_percent
 FROM production_measurements; 
 
 SELECT * FROM quality_overview_view;

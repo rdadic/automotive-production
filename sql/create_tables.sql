@@ -52,13 +52,16 @@ CREATE TABLE production_measurements(
     requires_inspection BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY(igef) REFERENCES production(igef) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY(specification_id) REFERENCES process_specifications(specification_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(robot_id) REFERENCES robots(robot_id)
+    FOREIGN KEY(robot_id) REFERENCES robots(robot_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE vehicle_status(
-    igef VARCHAR(255) NOT NULL,
+    igef VARCHAR(255) NOT NULL PRIMARY KEY,
     vehicle_location VARCHAR(255) NOT NULL,
     date_time DATETIME NOT NULL
 );
+
+
+
 
 

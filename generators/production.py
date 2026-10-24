@@ -16,21 +16,17 @@ def generate_models(number_of_cars):
     models = random.choices(models_number, weights_models, k= number_of_cars)
 
     return models
-'''
-def generate_lines(number_of_cars):
-    lines = [1, 2]
-    lines_weights = [50, 50]
-
-    return random.choices(lines, weights = lines_weights, k = number_of_cars)
-'''
 
 def generate_production_datetime(start_datetime):
     
     delay_times_minutes = [0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 10, 20, 30, 40]
-    delay_weights = [900, 415, 190, 140, 100, 80, 60, 40, 30, 20, 7, 3, 2, 1]
+    delay_weights = [950, 420, 190, 140, 100, 80, 60, 40, 30, 20, 7, 3, 2, 1]
 
     interval = 2
     pauses = [
+        (1, 20, 1, 30),
+        (2, 50, 3, 0),
+        (4, 20, 4, 30), 
         (9, 0, 9, 15),
         (11, 45, 12, 15),
         (18, 15, 18, 45),
@@ -63,8 +59,9 @@ def generate_production_datetime(start_datetime):
   
 
 def generate_production(igef_start_number, start_datetime):
-    line_1_times = generate_production_datetime(start_datetime) 
-    line_2_times = generate_production_datetime(start_datetime)
+    line_1_times = sorted(generate_production_datetime(start_datetime))
+    line_2_times = sorted(generate_production_datetime(start_datetime))
+    # sorted - Absicherung, normalerweise nicht notwendig
     number_of_cars = len(line_1_times) + len(line_2_times)
     igefs = generate_igef(number_of_cars, igef_start_number)
     models = generate_models(number_of_cars)
@@ -75,17 +72,31 @@ def generate_production(igef_start_number, start_datetime):
     i = 0 
     j = 0 
 
+
     while i < len(line_1_times) or j < len(line_2_times):
+
+        if i >= len(line_1_times):
+            # Linie 1 ist fertig, keine Fahrzeuge mehr 
+            lines.append(2)
+            datetimes.append(line_2_times[j])
+            j += 1
+        
+        elif j>= len(line_2_times):
+            # Linie 2 ist fertig
+            lines.append(1)
+            datetimes.append(line_1_times[i])
+            i += 1
+        
+        elif line_1_times[i] <= line_2_times[j]:
+            # Chronologisch; Zeit vergleichen; 
+            lines.append(1)
+            datetimes.append(line_1_times[i])
+            i += 1 
+        
+        else:
+            lines.append(2)
+            datetimes.append(line_2_times[j])
+            j += 1 
          
          
-         if i < len(line_1_times):
-              lines.append(1)
-              datetimes.append(line_1_times[i])
-              i += 1 
-         if j < len(line_2_times):
-              lines.append(2)
-              datetimes.append(line_2_times[j])
-              j += 1
-
-
     return igefs, models, lines, datetimes
