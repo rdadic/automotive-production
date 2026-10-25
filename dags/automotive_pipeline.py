@@ -12,9 +12,10 @@ import os
 import matplotlib 
 matplotlib.use("Agg")
 
+DAG_DIR = Path(__file__).resolve().parent
+load_dotenv(DAG_DIR / ".env")
 
-PROJECT_DIR=Path(os.environ["AUTOMOTIVE_PROJECT_DIR"])
-load_dotenv(PROJECT_DIR / ".env")
+PROJECT_DIR = Path(os.environ["AUTOMOTIVE_PRODUCTION_DIR"])
 
 DATA_DIR = PROJECT_DIR / "pipeline"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
